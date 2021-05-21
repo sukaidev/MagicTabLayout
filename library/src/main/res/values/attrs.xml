@@ -7,5 +7,9 @@
         <attr name="isSkimOverEnable" format="boolean" />
         <attr name="isSmoothScrollEnable" format="boolean" />
         <attr name="scrollPivotX" format="float" />
+        <attr name="tabSelectedTextColor" format="color" />
+        <attr name="tanUnselectedTextColor" format="color" />
+        <attr name="tabSelectedTextSize" format="dimension" />
+        <attr name="tabUnSelectedTextSize" format="dimension" />
     </declare-styleable>
 </resources>

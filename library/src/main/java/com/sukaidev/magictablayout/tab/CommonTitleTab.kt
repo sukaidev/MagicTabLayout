@@ -24,6 +24,8 @@ class CommonTitleTab @JvmOverloads constructor(
 
     private var padding = 10.dp
 
+    private var isAlignBaseLine = false
+
     private var selectedTextSize = 18f.dp
     private var unselectedTextSize = 18f.dp
     private var sizeUnit = TypedValue.COMPLEX_UNIT_PX
@@ -39,30 +41,44 @@ class CommonTitleTab @JvmOverloads constructor(
         setTextSize(sizeUnit, unselectedTextSize)
     }
 
-    private fun setSelectTextColor(@ColorInt color: Int) {
+    fun setAlignBaseLineMode(isAlignBaseLine: Boolean) {
+        this.isAlignBaseLine = isAlignBaseLine
+        if (isAlignBaseLine) {
+            post {
+                gravity = Gravity.BOTTOM
+                val paddingBottom = (height - unselectedTextSize - 10) / 2
+                setPadding(padding, 0, padding, paddingBottom.toInt())
+            }
+            return
+        }
+        gravity = Gravity.CENTER
+        setPadding(padding, 0, padding, 0)
+    }
+
+    fun setSelectTextColor(@ColorInt color: Int) {
         selectTextColor = color
     }
 
-    private fun setSelectTextColorRes(@ColorRes color: Int) {
+    fun setSelectTextColorRes(@ColorRes color: Int) {
         selectTextColor = ContextCompat.getColor(context, color)
     }
 
-    private fun setSelectTextSize(unit: Int, size: Float) {
+    fun setSelectTextSize(unit: Int, size: Float) {
         sizeUnit = unit
         selectedTextSize = size
     }
 
-    private fun setUnselectTextSize(unit: Int, size: Float) {
+    fun setUnselectTextSize(unit: Int, size: Float) {
         sizeUnit = unit
         unselectedTextSize = size
     }
 
-    private fun setUnselectTextColor(@ColorInt color: Int) {
-        selectTextColor = color
+    fun setUnselectTextColor(@ColorInt color: Int) {
+        unSelectTextColor = color
     }
 
-    private fun setUnselectTextColorRes(@ColorRes color: Int) {
-        selectTextColor = ContextCompat.getColor(context, color)
+    fun setUnselectTextColorRes(@ColorRes color: Int) {
+        unSelectTextColor = ContextCompat.getColor(context, color)
     }
 
     override fun getContentLeft(): Int {

@@ -21,7 +21,7 @@ abstract class BaseNavigatorAdapter {
 
     abstract fun getIndicator(context: Context): IMagicIndicator
 
-    open fun getTitleWeight(context: Context, index: Int) = 1
+    open fun getTitleWeight(context: Context, index: Int) = 1f
 
     fun registerDataSetObserver(observer: DataSetObserver) = dataSetObservable.registerObserver(observer)
 

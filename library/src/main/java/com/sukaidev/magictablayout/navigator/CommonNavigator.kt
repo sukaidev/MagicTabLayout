@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.viewpager.widget.ViewPager.SCROLL_STATE_IDLE
@@ -20,6 +21,12 @@ import com.sukaidev.magictablayout.tab.IMeasurableTab
 class CommonNavigator @JvmOverloads constructor(
         context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : BaseNavigator(context, attrs, defStyleAttr), OnNavigatorScrollListener {
+
+    override var mode: Int = MODE_SCROLLABLE
+        set(value) {
+            field = value
+            if (tabContainer?.childCount ?: 0 > 0) initTabsAndIndicators()
+        }
 
     private var tabContainer: LinearLayoutCompat? = null
     private var indicatorContainer: LinearLayoutCompat? = null
@@ -55,9 +62,9 @@ class CommonNavigator @JvmOverloads constructor(
     var enablePivotScroll = false
 
     // 滚动中心点 0.0f - 1.0f
-    val scrollPivotX = 0.5f
+    var scrollPivotX = 0.5f
 
-    // 是否平滑滚动，适用于!mFollowTouch
+    // 是否平滑滚动，适用于!mFollowTouch && MODE_SCROLLABLE
     var isSmoothScrollEnable = true
 
     // 是否手指跟随滚动
@@ -86,6 +93,9 @@ class CommonNavigator @JvmOverloads constructor(
         layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
         isHorizontalScrollBarEnabled = false
 
+        val container = FrameLayout(context)
+        container.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
+
         indicatorContainer = LinearLayoutCompat(context)
         indicatorContainer?.orientation = LinearLayoutCompat.HORIZONTAL
         indicatorContainer?.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
@@ -95,9 +105,11 @@ class CommonNavigator @JvmOverloads constructor(
         tabContainer?.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
         tabContainer?.setPadding(leftPadding, 0, rightPadding, 0)
 
-        addView(indicatorContainer)
-        addView(tabContainer)
+        container.addView(indicatorContainer)
+        container.addView(tabContainer)
         if (isIndicatorOnTop) bringChildToFront(indicatorContainer)
+
+        addView(container)
 
         initTabsAndIndicators()
     }
@@ -106,10 +118,18 @@ class CommonNavigator @JvmOverloads constructor(
      * 初始化title和indicator
      */
     private fun initTabsAndIndicators() {
+        tabContainer?.removeAllViews()
         for (i in 0 until navigatorHelper.totalCount) {
             val tab = adapter?.getTabView(context, i)
             if (tab is View) {
-                val lp = LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT)
+                val lp = when (mode) {
+                    MODE_FIXED -> {
+                        val lp = LinearLayout.LayoutParams(0, LayoutParams.MATCH_PARENT)
+                        lp.weight = adapter?.getTitleWeight(context, i) ?: 1f
+                        lp
+                    }
+                    else -> LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT)
+                }
                 tabContainer?.addView(tab, lp)
             }
         }
@@ -212,7 +232,7 @@ class CommonNavigator @JvmOverloads constructor(
         val tab = tabContainer?.getChildAt(index)
         (tab as? IMagicTab)?.onTabSelected(index, totalCount)
 
-        if (!isFollowTouch && indicatorPositions.isNotEmpty()) {
+        if (mode != MODE_FIXED && !isFollowTouch && indicatorPositions.isNotEmpty()) {
             val currentIndex = (indicatorPositions.size - 1).coerceAtMost(index)
             val current: IndicatorPosition = indicatorPositions[currentIndex]
             if (enablePivotScroll) {
