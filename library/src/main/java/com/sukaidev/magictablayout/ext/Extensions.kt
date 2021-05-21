@@ -43,7 +43,7 @@ fun argbEvaluate(fraction: Float, startValue: Int, endValue: Int): Int {
  * 计算锚点位置
  */
 fun List<IndicatorPosition>.getImitativeIndicatorInfo(index: Int): IndicatorPosition {
-    // 越界后，返回假的PositionData
+    // 越界后，返回假的IndicatorPosition
     return if (index >= 0 && index <= size - 1) {
         this[index]
     } else {

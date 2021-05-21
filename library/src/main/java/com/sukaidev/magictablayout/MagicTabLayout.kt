@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import android.widget.FrameLayout
+import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager.widget.ViewPager
 import androidx.viewpager2.widget.ViewPager2
 import com.sukaidev.magictablayout.navigator.CommonNavigator
@@ -24,8 +25,67 @@ class MagicTabLayout @JvmOverloads constructor(
 
     private var navigator: IMagicNavigator? = null
 
-    private var onPageChangeListener: ViewPager.OnPageChangeListener? = null
-    private var onPageChangeCallback: ViewPager2.OnPageChangeCallback? = null
+    private val onPageChangeListener: ViewPager.OnPageChangeListener by lazy(LazyThreadSafetyMode.NONE) {
+        object : ViewPager.OnPageChangeListener {
+            override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
+                onPageScrolled(position, positionOffset, positionOffsetPixels, true)
+            }
+
+            override fun onPageSelected(position: Int) {
+                onPageSelected(position, true)
+            }
+
+            override fun onPageScrollStateChanged(state: Int) {
+                onPageScrollStateChanged(state, true)
+            }
+        }
+    }
+    private val onPageChangeCallback: ViewPager2.OnPageChangeCallback by lazy(LazyThreadSafetyMode.NONE) {
+        object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
+                onPageScrolled(position, positionOffset, positionOffsetPixels, true)
+            }
+
+            override fun onPageSelected(position: Int) {
+                onPageSelected(position, true)
+            }
+
+            override fun onPageScrollStateChanged(state: Int) {
+                onPageScrollStateChanged(state, true)
+            }
+        }
+    }
+
+    private val onAdapterChangeListener by lazy(LazyThreadSafetyMode.NONE) {
+        ViewPager.OnAdapterChangeListener { _, _, _ -> navigator?.notifyDataSetChanged() }
+    }
+
+    private val onAdapterDataSetObserver by lazy(LazyThreadSafetyMode.NONE) {
+        object : RecyclerView.AdapterDataObserver() {
+            override fun onChanged() {
+                super.onChanged()
+                navigator?.notifyDataSetChanged()
+            }
+        }
+    }
+
+    private var scrollPivotX = 0.5f
+    private var enablePivotScroll = false
+    private var isFollowTouch = false
+    private var isIndicatorOnTop = false
+    private var isSkimOverEnable = true
+    private var isSmoothScrollEnable = true
+
+    init {
+        context.obtainStyledAttributes(attrs, R.styleable.MagicTabLayout).apply {
+            scrollPivotX = getFloat(R.styleable.MagicTabLayout_scrollPivotX, 0.5f)
+            isFollowTouch = getBoolean(R.styleable.MagicTabLayout_isFollowTouch, false)
+            isSkimOverEnable = getBoolean(R.styleable.MagicTabLayout_isSkimOverEnable, true)
+            isIndicatorOnTop = getBoolean(R.styleable.MagicTabLayout_isIndicatorOnTop, false)
+            enablePivotScroll = getBoolean(R.styleable.MagicTabLayout_enablePivotScroll, false)
+            isSmoothScrollEnable = getBoolean(R.styleable.MagicTabLayout_isSmoothScrollEnable, true)
+        }.recycle()
+    }
 
     fun setNavigator(navigator: IMagicNavigator) {
         if (navigator == this.navigator) return
@@ -97,35 +157,15 @@ class MagicTabLayout @JvmOverloads constructor(
 
     /**
      * 类似官方TabLayout的使用方式，直接与[ViewPager]绑定
-     * @param autoRefresh 当viewPager内容改变时是否自动刷新
      */
-    fun setupWithViewPager(viewPager: ViewPager, autoRefresh: Boolean = true) {
-        if (navigator == null) {
-            navigator = CommonNavigator(context)
-        }
-        onPageChangeListener?.let {
-            this.viewPager?.removeOnPageChangeListener(it)
-        }
+    fun setupWithViewPager(viewPager: ViewPager) {
+        if (this.viewPager == viewPager) return
+        this.viewPager?.removeOnPageChangeListener(onPageChangeListener)
+        this.viewPager?.removeOnAdapterChangeListener(onAdapterChangeListener)
 
-        val navigator = CommonNavigator(context)
-
-        setNavigator(navigator)
-
-        onPageChangeListener = object : ViewPager.OnPageChangeListener {
-            override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
-                onPageScrolled(position, positionOffset, positionOffsetPixels, true)
-            }
-
-            override fun onPageSelected(position: Int) {
-                onPageSelected(position, true)
-            }
-
-            override fun onPageScrollStateChanged(state: Int) {
-                onPageScrollStateChanged(state, true)
-            }
-        }
-        viewPager.addOnPageChangeListener(onPageChangeListener!!)
-
+        setDefaultNavigator()
+        viewPager.addOnPageChangeListener(onPageChangeListener)
+        viewPager.addOnAdapterChangeListener(onAdapterChangeListener)
         this.viewPager = viewPager
     }
 
@@ -133,40 +173,49 @@ class MagicTabLayout @JvmOverloads constructor(
      * 类似官方TabLayout的使用方式，直接与[ViewPager2]绑定
      * @param autoRefresh 当viewPager2内容改变时是否自动刷新
      */
-    fun setupWithViewPager2(viewPager2: ViewPager2, autoRefresh: Boolean = true) {
-        if (navigator == null) {
-            navigator = CommonNavigator(context)
-        }
-        onPageChangeCallback?.let {
-            this.viewPager2?.unregisterOnPageChangeCallback(it)
-        }
-        val navigator = CommonNavigator(context)
+    fun setupWithViewPager2(viewPager2: ViewPager2) {
+        if (this.viewPager2 == viewPager2) return
+        this.viewPager2?.unregisterOnPageChangeCallback(onPageChangeCallback)
+        this.viewPager2?.adapter?.unregisterAdapterDataObserver(onAdapterDataSetObserver)
 
-        setNavigator(navigator)
-
-        onPageChangeCallback = object : ViewPager2.OnPageChangeCallback() {
-            override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
-                onPageScrolled(position, positionOffset, positionOffsetPixels, true)
-            }
-
-            override fun onPageSelected(position: Int) {
-                onPageSelected(position, true)
-            }
-
-            override fun onPageScrollStateChanged(state: Int) {
-                onPageScrollStateChanged(state, true)
-            }
-        }
-        viewPager2.registerOnPageChangeCallback(onPageChangeCallback!!)
-
+        setDefaultNavigator()
+        viewPager2.registerOnPageChangeCallback(onPageChangeCallback)
+        viewPager2.adapter?.registerAdapterDataObserver(onAdapterDataSetObserver)
         this.viewPager2 = viewPager2
     }
 
-    fun bind(viewPager: ViewPager) {
+    private fun setDefaultNavigator() {
+        val navigator = CommonNavigator(context)
+        navigator.enablePivotScroll = enablePivotScroll
+        navigator.isFollowTouch
+        navigator.isIndicatorOnTop
+        navigator.isSkimOverEnable
+        navigator.isSmoothScrollEnable
+        navigator.scrollPivotX
+        setNavigator(navigator)
+    }
 
+    fun bind(viewPager: ViewPager) {
+        if (this.viewPager == viewPager) return
+        if (navigator == null) throw  IllegalStateException("set navigator before bind to a viewPager.")
+
+        this.viewPager?.removeOnPageChangeListener(onPageChangeListener)
+        this.viewPager?.removeOnAdapterChangeListener(onAdapterChangeListener)
+
+        viewPager.addOnPageChangeListener(onPageChangeListener)
+        viewPager.addOnAdapterChangeListener(onAdapterChangeListener)
+        this.viewPager = viewPager
     }
 
     fun bind(viewPager2: ViewPager2) {
+        if (this.viewPager2 == viewPager2) return
+        if (navigator == null) throw  IllegalStateException("set navigator before bind to a viewPager.")
 
+        this.viewPager2?.unregisterOnPageChangeCallback(onPageChangeCallback)
+        this.viewPager2?.adapter?.unregisterAdapterDataObserver(onAdapterDataSetObserver)
+
+        viewPager2.registerOnPageChangeCallback(onPageChangeCallback)
+        viewPager2.adapter?.registerAdapterDataObserver(onAdapterDataSetObserver)
+        this.viewPager2 = viewPager2
     }
 }

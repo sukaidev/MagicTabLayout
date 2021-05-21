@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="MagicTabLayout">
-
+        <attr name="enablePivotScroll" format="boolean" />
+        <attr name="isFollowTouch" format="boolean" />
+        <attr name="isIndicatorOnTop" format="boolean" />
+        <attr name="isSkimOverEnable" format="boolean" />
+        <attr name="isSmoothScrollEnable" format="boolean" />
+        <attr name="scrollPivotX" format="float" />
     </declare-styleable>
 </resources>

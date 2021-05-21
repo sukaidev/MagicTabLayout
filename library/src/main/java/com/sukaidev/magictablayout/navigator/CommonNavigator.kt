@@ -1,11 +1,9 @@
 package com.sukaidev.magictablayout.navigator
 
 import android.content.Context
-import android.database.DataSetObserver
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
-import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.viewpager.widget.ViewPager.SCROLL_STATE_IDLE
@@ -21,13 +19,34 @@ import com.sukaidev.magictablayout.tab.IMeasurableTab
  */
 class CommonNavigator @JvmOverloads constructor(
         context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
-) : HorizontalScrollView(context, attrs, defStyleAttr), IMagicNavigator, OnNavigatorScrollListener {
+) : BaseNavigator(context, attrs, defStyleAttr), OnNavigatorScrollListener {
 
     private var tabContainer: LinearLayoutCompat? = null
     private var indicatorContainer: LinearLayoutCompat? = null
 
-    private var indicator: IMagicIndicator? = null
-    private var adapter: BaseNavigatorAdapter? = null
+
+    override val indicator: IMagicIndicator?
+        get() = adapter?.getIndicator(context)
+
+
+    override var adapter: BaseNavigatorAdapter? = null
+        set(value) {
+            if (value == field) return
+            field?.unregisterDataSetObserver(observer)
+            if (value != null) {
+                value.registerDataSetObserver(observer)
+                navigatorHelper.setTotalCount(value.getCount())
+                // adapter改变时，应该重新init
+                if (tabContainer != null) {
+                    value.notifyDataSetChanged()
+                }
+            } else {
+                navigatorHelper.setTotalCount(0)
+                initViews()
+            }
+            field = value
+        }
+
     private val navigatorHelper = NavigatorHelper().apply {
         navigatorScrollListener = this@CommonNavigator
     }
@@ -38,7 +57,7 @@ class CommonNavigator @JvmOverloads constructor(
     // 滚动中心点 0.0f - 1.0f
     val scrollPivotX = 0.5f
 
-    // 是否平滑滚动，适用于 !mAdjustMode && !mFollowTouch
+    // 是否平滑滚动，适用于!mFollowTouch
     var isSmoothScrollEnable = true
 
     // 是否手指跟随滚动
@@ -51,25 +70,18 @@ class CommonNavigator @JvmOverloads constructor(
     var isIndicatorOnTop = false
 
     // 跨多页切换时，中间页是否显示 "掠过" 效果
-    var isSkimOver = false
+    var isSkimOverEnable = false
         set(value) {
             field = value
             navigatorHelper.skimOver = field
         }
 
-    // IndicatorPosition准备好时，是否重新选中当前页，为true可保证在极端情况下指示器状态正确
+    // IndicatorPosition准备好时，是否重新选中当前页
     var reselectWhenLayout = true
 
     private val indicatorPositions = mutableListOf<IndicatorPosition>()
 
-    private val observer = object : DataSetObserver() {
-        override fun onChanged() {
-            super.onChanged()
-            init()
-        }
-    }
-
-    private fun init() {
+    override fun initViews() {
         removeAllViews()
         layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
         isHorizontalScrollBarEnabled = false
@@ -101,7 +113,6 @@ class CommonNavigator @JvmOverloads constructor(
                 tabContainer?.addView(tab, lp)
             }
         }
-        indicator = adapter?.getIndicator(context)
         if (indicator is View) {
             val lp = LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
             indicatorContainer?.addView(indicator as View, lp)
@@ -146,21 +157,8 @@ class CommonNavigator @JvmOverloads constructor(
         }
     }
 
-    fun setAdapter(adapter: BaseNavigatorAdapter?) {
-        if (this.adapter == adapter) return
-        this.adapter?.unregisterDataSetObserver(observer)
-        if (adapter != null) {
-            adapter.registerDataSetObserver(observer)
-            navigatorHelper.setTotalCount(adapter.getCount())
-            // adapter改变时，应该重新init
-            if (tabContainer != null) {
-                adapter.notifyDataSetChanged()
-            }
-        } else {
-            navigatorHelper.setTotalCount(0)
-            init()
-        }
-        this.adapter = adapter
+    override fun onDataSetChanged() {
+        initViews()
     }
 
     override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
@@ -194,15 +192,6 @@ class CommonNavigator @JvmOverloads constructor(
         adapter ?: return
         navigatorHelper.onPageScrollStateChanged(state)
         indicator?.onPageScrollStateChanged(state)
-    }
-
-    override fun onAttachToTabLayout() = init()
-
-    override fun onDetachFromTabLayout() {
-    }
-
-    override fun notifyDataSetChanged() {
-        adapter?.notifyDataSetChanged()
     }
 
     override fun onEnter(index: Int, totalCount: Int, enterPercent: Float, leftToRight: Boolean) {
@@ -264,8 +253,4 @@ class CommonNavigator @JvmOverloads constructor(
     }
 
     fun getTabContainer() = tabContainer
-
-    fun getIndicator() = indicator
-
-    fun getAdapter() = adapter
 }
