@@ -5,7 +5,7 @@ package com.sukaidev.magictablayout.tab
  * 抽象的TabView
  * @author sukaidev
  */
-interface ITab {
+interface IMagicTab {
 
     fun onTabSelected(index: Int, totalCount: Int)
 
