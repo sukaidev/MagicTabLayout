@@ -15,6 +15,7 @@ import com.sukaidev.magictablayout.ext.dp
 
 /**
  * Create by sukaidev at 20/05/2021.
+ * 默认TabView
  * @author sukaidev
  */
 class CommonTitleTab @JvmOverloads constructor(
