@@ -129,13 +129,13 @@ class CommonIndicator @JvmOverloads constructor(
     annotation class Mode
 
     companion object {
-        // 直线宽度 == title宽度 - 2 * xOffset
+        /** 指示器宽度 == title宽度 - 2 * xOffset */
         const val MODE_MATCH_EDGE = 0
 
-        // 直线宽度 == title内容宽度 - 2 * xOffset
+        /** 直线宽度 == title内容宽度 - 2 * xOffset */
         const val MODE_WRAP_CONTENT = 1
 
-        // 直线宽度 == lineWidth
+        /** 直线宽度 == lineWidth */
         const val MODE_EXACTLY = 2
     }
 }

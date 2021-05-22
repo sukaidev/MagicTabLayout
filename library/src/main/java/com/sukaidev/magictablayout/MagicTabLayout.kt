@@ -14,6 +14,7 @@ import com.sukaidev.magictablayout.indicator.CommonIndicator.Companion.MODE_EXAC
 import com.sukaidev.magictablayout.indicator.CommonIndicator.Companion.MODE_MATCH_EDGE
 import com.sukaidev.magictablayout.indicator.CommonIndicator.Companion.MODE_WRAP_CONTENT
 import com.sukaidev.magictablayout.indicator.IMagicIndicator
+import com.sukaidev.magictablayout.indicator.NonIndicator
 import com.sukaidev.magictablayout.navigator.BaseNavigator
 import com.sukaidev.magictablayout.navigator.BaseNavigator.Companion.MODE_SCROLLABLE
 import com.sukaidev.magictablayout.navigator.BaseNavigatorAdapter
@@ -93,6 +94,7 @@ class MagicTabLayout @JvmOverloads constructor(
 
     private var indicatorColor = 0
     private var indicatorWidth = 0
+    private var showIndicator = true
 
     private var tabMode = MODE_SCROLLABLE
 
@@ -115,6 +117,7 @@ class MagicTabLayout @JvmOverloads constructor(
 
             indicatorColor = getColor(R.styleable.MagicTabLayout_indicatorColor, Color.BLACK)
             indicatorWidth = getDimension(R.styleable.MagicTabLayout_indicatorWidth, 10f.dp).toInt()
+            showIndicator = getBoolean(R.styleable.MagicTabLayout_showIndicator, true)
         }.recycle()
 
         initDefaultAdapter()
@@ -251,6 +254,7 @@ class MagicTabLayout @JvmOverloads constructor(
             }
 
             override fun getIndicator(context: Context): IMagicIndicator {
+                if (!showIndicator) return NonIndicator(context)
                 val indicator = CommonIndicator(context)
                 indicator.mode = MODE_WRAP_CONTENT
                 indicator.setColors(indicatorColor)

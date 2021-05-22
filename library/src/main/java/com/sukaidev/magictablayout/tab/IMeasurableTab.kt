@@ -5,11 +5,24 @@ package com.sukaidev.magictablayout.tab
  * @author sukaidev
  */
 interface IMeasurableTab : IMagicTab {
+
+    /**
+     * Tab绘制区域左边界
+     */
     fun getContentLeft(): Int
 
+    /**
+     * Tab绘制区域上边界
+     */
     fun getContentTop(): Int
 
+    /**
+     * Tab绘制区域右边界
+     */
     fun getContentRight(): Int
 
+    /**
+     * Tab绘制区域下边界
+     */
     fun getContentBottom(): Int
 }

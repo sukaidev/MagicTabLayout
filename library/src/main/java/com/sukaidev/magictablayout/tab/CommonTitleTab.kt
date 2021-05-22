@@ -24,6 +24,7 @@ class CommonTitleTab @JvmOverloads constructor(
 
     private var padding = 10.dp
 
+    /** 是否为对齐BaseLine模式 */
     private var isAlignBaseLine = false
 
     private var selectedTextSize = 0f

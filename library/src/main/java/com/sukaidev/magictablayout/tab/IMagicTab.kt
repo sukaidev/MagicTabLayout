@@ -21,7 +21,7 @@ interface IMagicTab {
     /**
      * 滑出当前Tab
      * @param leavePercent 离开的百分比, 0.0f - 1.0f
-     * @param leftToRight  是否从右至左滑入
+     * @param leftToRight  是否从左至右滑出
      */
     fun onLeave(index: Int, totalCount: Int, leavePercent: Float, leftToRight: Boolean)
 }

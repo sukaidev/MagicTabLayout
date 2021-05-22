@@ -13,6 +13,7 @@
         <attr name="tabUnSelectedTextSize" format="dimension" />
         <attr name="indicatorColor" format="color" />
         <attr name="indicatorWidth" format="dimension" />
+        <attr name="showIndicator" format="boolean" />
         <attr name="tabNavigateMode" format="enum">
             <enum name="scrollable" value="0" />
             <enum name="fixed" value="1" />

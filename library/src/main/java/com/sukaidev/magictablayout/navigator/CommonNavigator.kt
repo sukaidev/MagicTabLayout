@@ -65,32 +65,32 @@ class CommonNavigator @JvmOverloads constructor(
         navigatorScrollListener = this@CommonNavigator
     }
 
-    // 启动中心点滚动
+    /** 是否启动中心点滚动 */
     var enablePivotScroll = false
 
-    // 滚动中心点 0.0f - 1.0f
+    /** 滚动中心点 0.0f - 1.0f */
     var scrollPivotX = 0.5f
 
-    // 是否平滑滚动，适用于!mFollowTouch && MODE_SCROLLABLE
+    /** 是否平滑滚动，适用于!mFollowTouch && MODE_SCROLLABLE */
     var isSmoothScrollEnable = true
 
-    // 是否手指跟随滚动
+    /** 是否手指跟随滚动 */
     var isFollowTouch = true
 
     private val leftPadding = 0
     private val rightPadding = 0
 
-    // 指示器是否在title上层，默认为下层
+    /** 指示器是否在title上层，默认为下层 */
     var isIndicatorOnTop = false
 
-    // 跨多页切换时，中间页是否显示 "掠过" 效果
+    /** 跨多页切换时，中间页是否显示 "掠过" 效果 */
     var isSkimOverEnable = false
         set(value) {
             field = value
             navigatorHelper.skimOver = field
         }
 
-    // IndicatorPosition准备好时，是否重新选中当前页
+    /** IndicatorPosition准备好时，是否重新选中当前页 */
     var reselectWhenLayout = true
 
     private val indicatorPositions = mutableListOf<IndicatorPosition>()
@@ -268,7 +268,7 @@ class CommonNavigator @JvmOverloads constructor(
         }
     }
 
-    override fun onDeselected(index: Int, totalCount: Int) {
+    override fun onUnselected(index: Int, totalCount: Int) {
         if (tabContainer == null || tabContainer?.childCount == 0) return
         val tab = tabContainer?.getChildAt(index)
         (tab as? IMagicTab)?.onTabUnselected(index, totalCount)

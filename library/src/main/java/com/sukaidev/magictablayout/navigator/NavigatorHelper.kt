@@ -7,19 +7,22 @@ import androidx.viewpager.widget.ViewPager.SCROLL_STATE_IDLE
 
 /**
  * Create by sukaidev at 20/05/2021.
- * 协助[IMagicNavigator]将ViewPager的滑动回调转换成onEnter、onLeave等
+ * 协助[IMagicNavigator]将ViewPager的滑动回调转换成[OnNavigatorScrollListener]中的方法
  * @author sukaidev
  */
 class NavigatorHelper {
     private val unselectItems = SparseBooleanArray()
     private val leavePercents = SparseArray<Float>()
 
+    /** tab总数 */
     var totalCount = 0
         private set
 
+    /** 滑动状态 */
     var scrollState = 0
         private set
 
+    /** 当前focus的tab pos */
     var currentIndex = 0
         private set
 
@@ -108,7 +111,7 @@ class NavigatorHelper {
     }
 
     private fun dispatchOnDeselected(index: Int) {
-        navigatorScrollListener?.onDeselected(index, totalCount)
+        navigatorScrollListener?.onUnselected(index, totalCount)
         unselectItems.put(index, true)
     }
 
