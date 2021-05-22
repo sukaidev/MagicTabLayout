@@ -4,6 +4,7 @@ import android.content.Context
 import android.database.DataSetObservable
 import android.database.DataSetObserver
 import com.sukaidev.magictablayout.indicator.IMagicIndicator
+import com.sukaidev.magictablayout.indicator.NonIndicator
 import com.sukaidev.magictablayout.tab.IMagicTab
 
 /**
@@ -11,17 +12,52 @@ import com.sukaidev.magictablayout.tab.IMagicTab
  * 导航适配器
  * @author sukaidev
  */
-abstract class BaseNavigatorAdapter {
+abstract class BaseNavigatorAdapter(private val context: Context) {
 
-    abstract fun getCount(): Int
+    var tabCount = 0
+        get() = tabs.size
+        private set
+
+    private var tabs = mutableListOf<IMagicTab>()
+
+    var indicator: IMagicIndicator = NonIndicator(context)
 
     private val dataSetObservable = DataSetObservable()
 
-    abstract fun getTabView(context: Context, index: Int): IMagicTab
+    /**
+     * 当adapter与navigator绑定时调用此方法
+     */
+    fun onAttachToNavigator() {
+        tabs.clear()
+        tabs.addAll(setTabViews())
 
-    abstract fun getIndicator(context: Context): IMagicIndicator
+        indicator = setIndicator()
+    }
 
-    open fun getTitleWeight(context: Context, index: Int) = 1f
+    /**
+     * 当adapter与navigator解绑时调用此方法
+     */
+    fun onDetachFromNavigator() {
+        tabs.clear()
+    }
+
+    fun addTab(tab: IMagicTab) {
+        tabs.add(tab)
+        notifyDataSetChanged()
+    }
+
+    fun addTab(index: Int, tab: IMagicTab) {
+        tabs.add(index, tab)
+        notifyDataSetChanged()
+    }
+
+    fun getTab(index: Int) = tabs[index]
+
+    open fun setTabWeight(index: Int) = 1f
+
+    abstract fun setTabViews(): List<IMagicTab>
+
+    abstract fun setIndicator(): IMagicIndicator
 
     fun registerDataSetObserver(observer: DataSetObserver) = dataSetObservable.registerObserver(observer)
 

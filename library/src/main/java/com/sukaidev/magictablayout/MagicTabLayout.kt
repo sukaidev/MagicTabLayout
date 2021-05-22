@@ -142,6 +142,8 @@ class MagicTabLayout @JvmOverloads constructor(
         navigator.adapter = adapter
     }
 
+    fun getAdapter() = navigator.adapter
+
     fun setNavigator(navigator: BaseNavigator) {
         if (navigator == this.navigator) return
         this.navigator.onDetachFromTabLayout()
@@ -239,12 +241,16 @@ class MagicTabLayout @JvmOverloads constructor(
     }
 
     private fun setDefaultAdapter(titles: List<String>) {
-        val adapter = object : BaseNavigatorAdapter() {
-            override fun getCount() = titles.size
+        val indicator = CommonIndicator(context)
+        indicator.mode = MODE_WRAP_CONTENT
+        indicator.setColors(indicatorColor)
+        indicator.indicatorWidth = indicatorWidth
 
-            override fun getTabView(context: Context, index: Int): IMagicTab {
-                return CommonTitleTab.Builder(context)
-                        .setTitle(titles[index])
+        val adapter = object : BaseNavigatorAdapter(context) {
+
+            override fun setTabViews() = titles.map {
+                CommonTitleTab.Builder(context)
+                        .setTitle(it)
                         .setAlignBaseLineMode(true)
                         .setSelectTextColor(tabSelectedTextColor)
                         .setUnselectTextColor(tabUnselectedTextColor)
@@ -253,12 +259,8 @@ class MagicTabLayout @JvmOverloads constructor(
                         .build()
             }
 
-            override fun getIndicator(context: Context): IMagicIndicator {
+            override fun setIndicator(): IMagicIndicator {
                 if (!showIndicator) return NonIndicator(context)
-                val indicator = CommonIndicator(context)
-                indicator.mode = MODE_WRAP_CONTENT
-                indicator.setColors(indicatorColor)
-                indicator.indicatorWidth = indicatorWidth
                 return indicator
             }
         }

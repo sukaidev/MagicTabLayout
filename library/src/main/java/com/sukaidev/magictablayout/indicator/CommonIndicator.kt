@@ -6,14 +6,12 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
-import android.view.animation.Interpolator
 import android.view.animation.LinearInterpolator
 import androidx.annotation.ColorInt
 import androidx.annotation.IntDef
 import com.sukaidev.magictablayout.ext.argbEvaluate
 import com.sukaidev.magictablayout.ext.dp
 import com.sukaidev.magictablayout.ext.getImitativeIndicatorInfo
-import java.util.*
 import kotlin.math.abs
 
 /**
@@ -32,7 +30,7 @@ class CommonIndicator @JvmOverloads constructor(
      * 指示器相对于x轴和y轴的偏移量
      * 可以通过设置这两个值来指定tab的位置
      */
-    var yOffset = 0f
+    var yOffset = 10f
     var xOffset = 0f
     var indicatorWidth = 10.dp
     var indicatorHeight = 3.dp

@@ -16,7 +16,11 @@ class NavigatorHelper {
 
     /** tab总数 */
     var totalCount = 0
-        private set
+        set(value) {
+            field = value
+            unselectItems.clear()
+            leavePercents.clear()
+        }
 
     /** 滑动状态 */
     var scrollState = 0
@@ -132,11 +136,5 @@ class NavigatorHelper {
 
     fun onPageScrollStateChanged(state: Int) {
         scrollState = state
-    }
-
-    fun setTotalCount(totalCount: Int) {
-        this.totalCount = totalCount
-        unselectItems.clear()
-        leavePercents.clear()
     }
 }

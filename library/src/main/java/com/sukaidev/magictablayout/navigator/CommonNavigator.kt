@@ -22,49 +22,6 @@ class CommonNavigator @JvmOverloads constructor(
         context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : BaseNavigator(context, attrs, defStyleAttr), OnNavigatorScrollListener {
 
-    override var mode: Int = MODE_SCROLLABLE
-        set(value) {
-            field = value
-            if (tabContainer?.childCount ?: 0 > 0) initTabsAndIndicators()
-        }
-
-    private var tabContainer: LinearLayoutCompat? = null
-    private var indicatorContainer: LinearLayoutCompat? = null
-
-
-    override var indicator: IMagicIndicator? = null
-        get() {
-            if (field == null) {
-                field = adapter?.getIndicator(context)
-            }
-            return field
-        }
-
-
-    override var adapter: BaseNavigatorAdapter? = null
-        set(value) {
-            if (value == field) return
-            field?.unregisterDataSetObserver(observer)
-
-            field = value
-
-            if (value != null) {
-                value.registerDataSetObserver(observer)
-                navigatorHelper.setTotalCount(value.getCount())
-                // adapter改变时，应该重新init
-                if (tabContainer != null) {
-                    value.notifyDataSetChanged()
-                }
-            } else {
-                navigatorHelper.setTotalCount(0)
-                initViews()
-            }
-        }
-
-    private val navigatorHelper = NavigatorHelper().apply {
-        navigatorScrollListener = this@CommonNavigator
-    }
-
     /** 是否启动中心点滚动 */
     var enablePivotScroll = false
 
@@ -93,6 +50,42 @@ class CommonNavigator @JvmOverloads constructor(
     /** IndicatorPosition准备好时，是否重新选中当前页 */
     var reselectWhenLayout = true
 
+    override var mode: Int = MODE_SCROLLABLE
+        set(value) {
+            field = value
+            if (tabContainer?.childCount ?: 0 > 0) initTabsAndIndicators()
+        }
+
+    private var tabContainer: LinearLayoutCompat? = null
+    private var indicatorContainer: LinearLayoutCompat? = null
+
+    override var indicator: IMagicIndicator? = null
+        get() {
+            if (field == null) {
+                field = adapter?.indicator
+            }
+            return field
+        }
+
+    override var adapter: BaseNavigatorAdapter? = null
+        set(value) {
+            if (value == field) return
+            field?.unregisterDataSetObserver(observer)
+            field?.onDetachFromNavigator()
+
+            field = value
+
+            if (value != null) {
+                value.registerDataSetObserver(observer)
+                // adapter改变时，应该重新init
+                initViews()
+            }
+        }
+
+    private val navigatorHelper = NavigatorHelper().apply {
+        navigatorScrollListener = this@CommonNavigator
+    }
+
     private val indicatorPositions = mutableListOf<IndicatorPosition>()
 
     override fun initViews() {
@@ -118,6 +111,9 @@ class CommonNavigator @JvmOverloads constructor(
 
         addView(container)
 
+        adapter?.onAttachToNavigator()
+        navigatorHelper.totalCount = adapter?.tabCount ?: 0
+
         initTabsAndIndicators()
     }
 
@@ -125,14 +121,13 @@ class CommonNavigator @JvmOverloads constructor(
      * 初始化title和indicator
      */
     private fun initTabsAndIndicators() {
-        tabContainer?.removeAllViews()
         for (i in 0 until navigatorHelper.totalCount) {
-            val tab = adapter?.getTabView(context, i)
+            val tab = adapter?.getTab(i)
             if (tab is View) {
                 val lp = when (mode) {
                     MODE_FIXED -> {
                         val lp = LinearLayout.LayoutParams(0, LayoutParams.MATCH_PARENT)
-                        lp.weight = adapter?.getTitleWeight(context, i) ?: 1f
+                        lp.weight = adapter?.setTabWeight(i) ?: 1f
                         lp
                     }
                     else -> LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT)
@@ -185,7 +180,12 @@ class CommonNavigator @JvmOverloads constructor(
     }
 
     override fun onDataSetChanged() {
-        initViews()
+        tabContainer?.removeAllViews()
+        indicatorContainer?.removeAllViews()
+
+        navigatorHelper.totalCount = adapter?.tabCount ?: 0
+
+        initTabsAndIndicators()
     }
 
     override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
@@ -273,11 +273,4 @@ class CommonNavigator @JvmOverloads constructor(
         val tab = tabContainer?.getChildAt(index)
         (tab as? IMagicTab)?.onTabUnselected(index, totalCount)
     }
-
-    fun getTabView(index: Int): IMagicTab? {
-        if (tabContainer == null || tabContainer?.childCount == 0) return null
-        return tabContainer?.getChildAt(index) as? IMagicTab
-    }
-
-    fun getTabContainer() = tabContainer
 }

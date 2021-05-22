@@ -96,7 +96,7 @@ class CommonTitleTab @JvmOverloads constructor(
     override fun getContentTop(): Int {
         val metrics = paint.fontMetrics
         val contentHeight = metrics.bottom - metrics.top
-        return (height / 2 - contentHeight / 2).toInt()
+        return ((height - contentHeight) / 2).toInt()
     }
 
     override fun getContentRight(): Int {
