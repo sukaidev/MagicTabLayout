@@ -11,5 +11,11 @@
         <attr name="tanUnselectedTextColor" format="color" />
         <attr name="tabSelectedTextSize" format="dimension" />
         <attr name="tabUnSelectedTextSize" format="dimension" />
+        <attr name="indicatorColor" format="color" />
+        <attr name="indicatorWidth" format="dimension" />
+        <attr name="tabNavigateMode" format="enum">
+            <enum name="scrollable" value="0" />
+            <enum name="fixed" value="1" />
+        </attr>
     </declare-styleable>
 </resources>

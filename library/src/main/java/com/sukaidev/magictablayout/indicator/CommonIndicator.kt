@@ -28,20 +28,22 @@ class CommonIndicator @JvmOverloads constructor(
     @Mode
     var mode: Int = MODE_MATCH_EDGE
 
-    // 指示器相对于底部的偏移量
-    // 可以通过设置这个值来使得指示器位于tab的顶部
+    /**
+     * 指示器相对于x轴和y轴的偏移量
+     * 可以通过设置这两个值来指定tab的位置
+     */
     var yOffset = 0f
     var xOffset = 0f
-    var radius = 1.5f.dp
-    var indicatorWidth = 3.dp
-    var indicatorHeight = 10.dp
+    var indicatorWidth = 10.dp
+    var indicatorHeight = 3.dp
+    var radius = indicatorHeight / 2f
 
-    // 插值器，用于控制动画效果
+    /** 插值器，用于控制动画效果 */
     var startInterpolator = LinearInterpolator()
     var endInterpolator = LinearInterpolator()
 
     private var colors: List<Int> = mutableListOf()
-    private var indicatorPosition: List<IndicatorPosition> = mutableListOf()
+    private var indicatorPosition: List<IndicatorPosition>? = null
 
     private val indicatorRect = RectF()
 
@@ -50,7 +52,7 @@ class CommonIndicator @JvmOverloads constructor(
     }
 
     override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
-        if (indicatorPosition.isEmpty()) return
+        if (indicatorPosition.isNullOrEmpty()) return
 
         // 计算颜色
         if (colors.isNotEmpty()) {
@@ -61,28 +63,35 @@ class CommonIndicator @JvmOverloads constructor(
         }
 
         // 计算锚点位置
-        val current: IndicatorPosition = indicatorPosition.getImitativeIndicatorInfo(position)
-        val next: IndicatorPosition = indicatorPosition.getImitativeIndicatorInfo(position + 1)
+        val current: IndicatorPosition = indicatorPosition?.getImitativeIndicatorInfo(position)
+                ?: return
+        val next: IndicatorPosition = indicatorPosition?.getImitativeIndicatorInfo(position + 1)
+                ?: return
 
         val leftX: Float
         val nextLeftX: Float
         val rightX: Float
         val nextRightX: Float
-        if (mode == MODE_MATCH_EDGE) {
-            leftX = current.left + xOffset
-            nextLeftX = next.left + xOffset
-            rightX = current.right - xOffset
-            nextRightX = next.right - xOffset
-        } else if (mode == MODE_WRAP_CONTENT) {
-            leftX = current.contentLeft + xOffset
-            nextLeftX = next.contentLeft + xOffset
-            rightX = current.contentRight - xOffset
-            nextRightX = next.contentRight - xOffset
-        } else {    // MODE_EXACTLY
-            leftX = current.left + (current.width() - indicatorWidth) / 2f
-            nextLeftX = next.left + (next.width() - indicatorWidth) / 2f
-            rightX = current.left + (current.width() + indicatorWidth) / 2f
-            nextRightX = next.left + (next.width() + indicatorWidth) / 2f
+        when (mode) {
+            MODE_MATCH_EDGE -> {
+                leftX = current.left + xOffset
+                nextLeftX = next.left + xOffset
+                rightX = current.right - xOffset
+                nextRightX = next.right - xOffset
+            }
+            MODE_WRAP_CONTENT -> {
+                leftX = current.contentLeft + xOffset
+                nextLeftX = next.contentLeft + xOffset
+                rightX = current.contentRight - xOffset
+                nextRightX = next.contentRight - xOffset
+            }
+            // MODE_EXACTLY
+            else -> {
+                leftX = current.left + (current.width() - indicatorWidth) / 2f
+                nextLeftX = next.left + (next.width() - indicatorWidth) / 2f
+                rightX = current.left + (current.width() + indicatorWidth) / 2f
+                nextRightX = next.left + (next.width() + indicatorWidth) / 2f
+            }
         }
 
         indicatorRect.left = leftX + (nextLeftX - leftX) * startInterpolator.getInterpolation(positionOffset)

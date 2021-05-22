@@ -26,12 +26,12 @@ class CommonTitleTab @JvmOverloads constructor(
 
     private var isAlignBaseLine = false
 
-    private var selectedTextSize = 18f.dp
-    private var unselectedTextSize = 18f.dp
-    private var sizeUnit = TypedValue.COMPLEX_UNIT_PX
+    private var selectedTextSize = 0f
+    private var unselectedTextSize = 0f
+    private var sizeUnit = 0
 
-    private var selectTextColor = Color.BLACK
-    private var unSelectTextColor = Color.BLACK
+    private var selectTextColor = 0
+    private var unSelectTextColor = 0
 
     init {
         gravity = Gravity.CENTER
@@ -55,31 +55,6 @@ class CommonTitleTab @JvmOverloads constructor(
         setPadding(padding, 0, padding, 0)
     }
 
-    fun setSelectTextColor(@ColorInt color: Int) {
-        selectTextColor = color
-    }
-
-    fun setSelectTextColorRes(@ColorRes color: Int) {
-        selectTextColor = ContextCompat.getColor(context, color)
-    }
-
-    fun setSelectTextSize(unit: Int, size: Float) {
-        sizeUnit = unit
-        selectedTextSize = size
-    }
-
-    fun setUnselectTextSize(unit: Int, size: Float) {
-        sizeUnit = unit
-        unselectedTextSize = size
-    }
-
-    fun setUnselectTextColor(@ColorInt color: Int) {
-        unSelectTextColor = color
-    }
-
-    fun setUnselectTextColorRes(@ColorRes color: Int) {
-        unSelectTextColor = ContextCompat.getColor(context, color)
-    }
 
     override fun getContentLeft(): Int {
         val bound = Rect()
@@ -143,5 +118,62 @@ class CommonTitleTab @JvmOverloads constructor(
         val metrics = paint.fontMetrics
         val contentHeight = metrics.bottom - metrics.top
         return (height / 2 + contentHeight / 2).toInt()
+    }
+
+    class Builder(private val context: Context) {
+        private var title = ""
+        private var selectedTextSize = 18f.dp
+        private var unselectedTextSize = 18f.dp
+        private var sizeUnit = TypedValue.COMPLEX_UNIT_PX
+
+        private var selectTextColor = Color.BLACK
+        private var unSelectTextColor = Color.BLACK
+
+        private var isAlignBaseLine = false
+
+        fun setTitle(title: String) = apply {
+            this.title = title
+        }
+
+        fun setSelectTextColor(@ColorInt color: Int) = apply {
+            selectTextColor = color
+        }
+
+        fun setSelectTextColorRes(@ColorRes color: Int) = apply {
+            selectTextColor = ContextCompat.getColor(context, color)
+        }
+
+        fun setSelectTextSize(unit: Int, size: Float) = apply {
+            sizeUnit = unit
+            selectedTextSize = size
+        }
+
+        fun setUnselectTextSize(unit: Int, size: Float) = apply {
+            sizeUnit = unit
+            unselectedTextSize = size
+        }
+
+        fun setUnselectTextColor(@ColorInt color: Int) = apply {
+            unSelectTextColor = color
+        }
+
+        fun setUnselectTextColorRes(@ColorRes color: Int) = apply {
+            unSelectTextColor = ContextCompat.getColor(context, color)
+        }
+
+        fun setAlignBaseLineMode(alignBaseLine: Boolean) = apply {
+            isAlignBaseLine = alignBaseLine
+        }
+
+        fun build(): CommonTitleTab {
+            val tab = CommonTitleTab(context)
+            tab.text = title
+            tab.selectedTextSize = selectedTextSize
+            tab.selectTextColor = selectTextColor
+            tab.unselectedTextSize = unselectedTextSize
+            tab.unSelectTextColor = unSelectTextColor
+            tab.setAlignBaseLineMode(isAlignBaseLine)
+            return tab
+        }
     }
 }

@@ -4,26 +4,26 @@ import android.content.Context
 import android.graphics.Color
 import android.util.AttributeSet
 import android.util.TypedValue
-import android.view.View
 import android.widget.FrameLayout
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager.widget.ViewPager
 import androidx.viewpager2.widget.ViewPager2
 import com.sukaidev.magictablayout.ext.dp
 import com.sukaidev.magictablayout.indicator.CommonIndicator
+import com.sukaidev.magictablayout.indicator.CommonIndicator.Companion.MODE_EXACTLY
+import com.sukaidev.magictablayout.indicator.CommonIndicator.Companion.MODE_MATCH_EDGE
 import com.sukaidev.magictablayout.indicator.CommonIndicator.Companion.MODE_WRAP_CONTENT
 import com.sukaidev.magictablayout.indicator.IMagicIndicator
-import com.sukaidev.magictablayout.navigator.BaseNavigator.Companion.MODE_FIXED
+import com.sukaidev.magictablayout.navigator.BaseNavigator
+import com.sukaidev.magictablayout.navigator.BaseNavigator.Companion.MODE_SCROLLABLE
 import com.sukaidev.magictablayout.navigator.BaseNavigatorAdapter
 import com.sukaidev.magictablayout.navigator.CommonNavigator
-import com.sukaidev.magictablayout.navigator.IMagicNavigator
 import com.sukaidev.magictablayout.tab.CommonTitleTab
 import com.sukaidev.magictablayout.tab.IMagicTab
 
 /**
  * Create by sukaidev at 20/05/2021.
- *
- * 框架入口
+ * 自定义的TabLayout
  * @author sukaidev
  */
 class MagicTabLayout @JvmOverloads constructor(
@@ -33,7 +33,7 @@ class MagicTabLayout @JvmOverloads constructor(
     private var viewPager: ViewPager? = null
     private var viewPager2: ViewPager2? = null
 
-    private var navigator: IMagicNavigator? = null
+    private var navigator: BaseNavigator = CommonNavigator(context)
 
     private val onPageChangeListener: ViewPager.OnPageChangeListener by lazy(LazyThreadSafetyMode.NONE) {
         object : ViewPager.OnPageChangeListener {
@@ -74,7 +74,7 @@ class MagicTabLayout @JvmOverloads constructor(
         object : RecyclerView.AdapterDataObserver() {
             override fun onChanged() {
                 super.onChanged()
-                navigator?.notifyDataSetChanged()
+                navigator.notifyDataSetChanged()
             }
         }
     }
@@ -91,8 +91,15 @@ class MagicTabLayout @JvmOverloads constructor(
     private var tabSelectedTextSize = 0f
     private var tabUnselectedTextSize = 0f
 
+    private var indicatorColor = 0
+    private var indicatorWidth = 0
+
+    private var tabMode = MODE_SCROLLABLE
+
     init {
         context.obtainStyledAttributes(attrs, R.styleable.MagicTabLayout).apply {
+            tabMode = getInt(R.styleable.MagicTabLayout_tabNavigateMode, MODE_SCROLLABLE)
+
             scrollPivotX = getFloat(R.styleable.MagicTabLayout_scrollPivotX, 0.5f)
             isFollowTouch = getBoolean(R.styleable.MagicTabLayout_isFollowTouch, false)
             isSkimOverEnable = getBoolean(R.styleable.MagicTabLayout_isSkimOverEnable, true)
@@ -105,18 +112,40 @@ class MagicTabLayout @JvmOverloads constructor(
 
             tabUnselectedTextColor = getColor(R.styleable.MagicTabLayout_tanUnselectedTextColor, Color.GRAY)
             tabUnselectedTextSize = getDimension(R.styleable.MagicTabLayout_tabUnSelectedTextSize, 18f.dp)
+
+            indicatorColor = getColor(R.styleable.MagicTabLayout_indicatorColor, Color.BLACK)
+            indicatorWidth = getDimension(R.styleable.MagicTabLayout_indicatorWidth, 10f.dp).toInt()
         }.recycle()
+
+        initDefaultAdapter()
     }
 
-    fun setNavigator(navigator: IMagicNavigator) {
-        if (navigator == this.navigator) return
-        this.navigator?.onDetachFromTabLayout()
-        removeAllViews()
-        if (navigator is View) {
-            val lp = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
-            addView(navigator, lp)
-            navigator.onAttachToTabLayout()
+    private fun initDefaultAdapter() {
+        (navigator as? CommonNavigator)?.let {
+            it.mode = tabMode
+            it.enablePivotScroll = enablePivotScroll
+            it.isFollowTouch = isFollowTouch
+            it.isIndicatorOnTop = isIndicatorOnTop
+            it.isSkimOverEnable = isSkimOverEnable
+            it.isSmoothScrollEnable = isSmoothScrollEnable
+            it.scrollPivotX = scrollPivotX
         }
+        val lp = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
+        addView(navigator, lp)
+        navigator.onAttachToTabLayout()
+    }
+
+    fun setAdapter(adapter: BaseNavigatorAdapter) {
+        navigator.adapter = adapter
+    }
+
+    fun setNavigator(navigator: BaseNavigator) {
+        if (navigator == this.navigator) return
+        this.navigator.onDetachFromTabLayout()
+        removeAllViews()
+        val lp = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
+        addView(navigator, lp)
+        navigator.onAttachToTabLayout()
         this.navigator = navigator
     }
 
@@ -137,7 +166,7 @@ class MagicTabLayout @JvmOverloads constructor(
         if (!invokeByViewPager && (viewPager != null || viewPager2 != null)) {
             throw IllegalStateException("Once MagicTabLayout was bound to ViewPager or ViewPager2 , you should never invoke this method by yourself.")
         }
-        navigator?.onPageScrolled(position, positionOffset, positionOffsetPixels)
+        navigator.onPageScrolled(position, positionOffset, positionOffsetPixels)
     }
 
     /**
@@ -155,7 +184,7 @@ class MagicTabLayout @JvmOverloads constructor(
         if (!invokeByViewPager && (viewPager != null || viewPager2 != null)) {
             throw IllegalStateException("Once MagicTabLayout was bound to ViewPager or ViewPager2 , you should never invoke this method by yourself.")
         }
-        navigator?.onPageSelected(position)
+        navigator.onPageSelected(position)
     }
 
     /**
@@ -173,7 +202,7 @@ class MagicTabLayout @JvmOverloads constructor(
         if (!invokeByViewPager && (viewPager != null || viewPager2 != null)) {
             throw IllegalStateException("Once MagicTabLayout was bound to ViewPager or ViewPager2 , you should never invoke this method by yourself.")
         }
-        navigator?.onPageScrollStateChanged(state)
+        navigator.onPageScrollStateChanged(state)
     }
 
     /**
@@ -184,7 +213,7 @@ class MagicTabLayout @JvmOverloads constructor(
         this.viewPager?.removeOnPageChangeListener(onPageChangeListener)
         this.viewPager?.removeOnAdapterChangeListener(onAdapterChangeListener)
 
-        setDefaultNavigator(titles)
+        setDefaultAdapter(titles)
 
         viewPager.addOnPageChangeListener(onPageChangeListener)
         viewPager.addOnAdapterChangeListener(onAdapterChangeListener)
@@ -199,48 +228,45 @@ class MagicTabLayout @JvmOverloads constructor(
         this.viewPager2?.unregisterOnPageChangeCallback(onPageChangeCallback)
         this.viewPager2?.adapter?.unregisterAdapterDataObserver(onAdapterDataSetObserver)
 
-        setDefaultNavigator(titles)
+        setDefaultAdapter(titles)
 
         viewPager2.registerOnPageChangeCallback(onPageChangeCallback)
         viewPager2.adapter?.registerAdapterDataObserver(onAdapterDataSetObserver)
         this.viewPager2 = viewPager2
     }
 
-    private fun setDefaultNavigator(titles: List<String>) {
-        val navigator = CommonNavigator(context)
-        navigator.enablePivotScroll = enablePivotScroll
-        navigator.isFollowTouch = isFollowTouch
-        navigator.isIndicatorOnTop = isIndicatorOnTop
-        navigator.isSkimOverEnable = isSkimOverEnable
-        navigator.isSmoothScrollEnable = isSmoothScrollEnable
-        navigator.scrollPivotX = scrollPivotX
-
-        navigator.adapter = object : BaseNavigatorAdapter() {
+    private fun setDefaultAdapter(titles: List<String>) {
+        val adapter = object : BaseNavigatorAdapter() {
             override fun getCount() = titles.size
 
             override fun getTabView(context: Context, index: Int): IMagicTab {
-                val tab = CommonTitleTab(context)
-                tab.text = titles[index]
-                tab.setAlignBaseLineMode(true)
-                tab.setSelectTextColor(tabSelectedTextColor)
-                tab.setUnselectTextColor(tabUnselectedTextColor)
-                tab.setSelectTextSize(TypedValue.COMPLEX_UNIT_PX, tabSelectedTextSize)
-                tab.setUnselectTextSize(TypedValue.COMPLEX_UNIT_PX, tabUnselectedTextSize)
-                return tab
+                return CommonTitleTab.Builder(context)
+                        .setTitle(titles[index])
+                        .setAlignBaseLineMode(true)
+                        .setSelectTextColor(tabSelectedTextColor)
+                        .setUnselectTextColor(tabUnselectedTextColor)
+                        .setSelectTextSize(TypedValue.COMPLEX_UNIT_PX, tabSelectedTextSize)
+                        .setUnselectTextSize(TypedValue.COMPLEX_UNIT_PX, tabUnselectedTextSize)
+                        .build()
             }
 
             override fun getIndicator(context: Context): IMagicIndicator {
                 val indicator = CommonIndicator(context)
                 indicator.mode = MODE_WRAP_CONTENT
+                indicator.setColors(indicatorColor)
+                indicator.indicatorWidth = indicatorWidth
                 return indicator
             }
         }
-        setNavigator(navigator)
+        setAdapter(adapter)
     }
 
+    /**
+     * 仅绑定ViewPager的滑动监听
+     * 需调用[setNavigator]配置Navigator
+     */
     fun bind(viewPager: ViewPager) {
         if (this.viewPager == viewPager) return
-        if (navigator == null) throw  IllegalStateException("set navigator before bind to a viewPager.")
 
         this.viewPager?.removeOnPageChangeListener(onPageChangeListener)
         this.viewPager?.removeOnAdapterChangeListener(onAdapterChangeListener)
@@ -250,9 +276,12 @@ class MagicTabLayout @JvmOverloads constructor(
         this.viewPager = viewPager
     }
 
+    /**
+     * 仅绑定ViewPager2的滑动监听
+     * 需调用[setNavigator]配置Navigator
+     */
     fun bind(viewPager2: ViewPager2) {
         if (this.viewPager2 == viewPager2) return
-        if (navigator == null) throw  IllegalStateException("set navigator before bind to a viewPager.")
 
         this.viewPager2?.unregisterOnPageChangeCallback(onPageChangeCallback)
         this.viewPager2?.adapter?.unregisterAdapterDataObserver(onAdapterDataSetObserver)

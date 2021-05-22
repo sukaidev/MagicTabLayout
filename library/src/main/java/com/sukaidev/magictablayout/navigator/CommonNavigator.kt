@@ -32,14 +32,22 @@ class CommonNavigator @JvmOverloads constructor(
     private var indicatorContainer: LinearLayoutCompat? = null
 
 
-    override val indicator: IMagicIndicator?
-        get() = adapter?.getIndicator(context)
+    override var indicator: IMagicIndicator? = null
+        get() {
+            if (field == null) {
+                field = adapter?.getIndicator(context)
+            }
+            return field
+        }
 
 
     override var adapter: BaseNavigatorAdapter? = null
         set(value) {
             if (value == field) return
             field?.unregisterDataSetObserver(observer)
+
+            field = value
+
             if (value != null) {
                 value.registerDataSetObserver(observer)
                 navigatorHelper.setTotalCount(value.getCount())
@@ -51,7 +59,6 @@ class CommonNavigator @JvmOverloads constructor(
                 navigatorHelper.setTotalCount(0)
                 initViews()
             }
-            field = value
         }
 
     private val navigatorHelper = NavigatorHelper().apply {
@@ -94,7 +101,7 @@ class CommonNavigator @JvmOverloads constructor(
         isHorizontalScrollBarEnabled = false
 
         val container = FrameLayout(context)
-        container.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
+        container.layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT)
 
         indicatorContainer = LinearLayoutCompat(context)
         indicatorContainer?.orientation = LinearLayoutCompat.HORIZONTAL
@@ -102,7 +109,7 @@ class CommonNavigator @JvmOverloads constructor(
 
         tabContainer = LinearLayoutCompat(context)
         tabContainer?.orientation = LinearLayoutCompat.HORIZONTAL
-        tabContainer?.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
+        tabContainer?.layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT)
         tabContainer?.setPadding(leftPadding, 0, rightPadding, 0)
 
         container.addView(indicatorContainer)
@@ -146,7 +153,7 @@ class CommonNavigator @JvmOverloads constructor(
         indicator?.onIndicatorPositionProvide(indicatorPositions)
         if (reselectWhenLayout && navigatorHelper.scrollState == SCROLL_STATE_IDLE) {
             onPageSelected(navigatorHelper.currentIndex)
-            onPageScrolled(navigatorHelper.currentIndex, 0.0f, 0)
+            onPageScrolled(navigatorHelper.currentIndex, 0f, 0)
         }
     }
 

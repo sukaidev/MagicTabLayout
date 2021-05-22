@@ -8,7 +8,7 @@ import  com.sukaidev.magictablayout.MagicTabLayout
  *
  * @author sukaidev
  */
-interface IMagicNavigator {
+internal interface IMagicNavigator {
 
     fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int)
 
