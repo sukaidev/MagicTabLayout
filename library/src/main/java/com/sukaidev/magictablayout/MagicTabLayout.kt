@@ -20,6 +20,7 @@ import com.sukaidev.magictablayout.navigator.BaseNavigator.Companion.MODE_SCROLL
 import com.sukaidev.magictablayout.navigator.BaseNavigatorAdapter
 import com.sukaidev.magictablayout.navigator.CommonNavigator
 import com.sukaidev.magictablayout.tab.CommonTitleTab
+import com.sukaidev.magictablayout.tab.CommonTitleTab.Companion.SELECT
 import com.sukaidev.magictablayout.tab.IMagicTab
 
 /**
@@ -80,6 +81,7 @@ class MagicTabLayout @JvmOverloads constructor(
         }
     }
 
+    /** 默认配置 */
     private var scrollPivotX = 0.5f
     private var enablePivotScroll = false
     private var isFollowTouch = false
@@ -96,6 +98,7 @@ class MagicTabLayout @JvmOverloads constructor(
     private var indicatorWidth = 0
     private var showIndicator = true
 
+    private var tabBoldMode = SELECT
     private var tabMode = MODE_SCROLLABLE
 
     init {
@@ -115,14 +118,20 @@ class MagicTabLayout @JvmOverloads constructor(
             tabUnselectedTextColor = getColor(R.styleable.MagicTabLayout_tanUnselectedTextColor, Color.GRAY)
             tabUnselectedTextSize = getDimension(R.styleable.MagicTabLayout_tabUnSelectedTextSize, 18f.dp)
 
+            tabBoldMode = getInt(R.styleable.MagicTabLayout_tabBoldMode, SELECT)
+
             indicatorColor = getColor(R.styleable.MagicTabLayout_indicatorColor, Color.BLACK)
             indicatorWidth = getDimension(R.styleable.MagicTabLayout_indicatorWidth, 10f.dp).toInt()
             showIndicator = getBoolean(R.styleable.MagicTabLayout_showIndicator, true)
+            if (indicatorWidth == 0) showIndicator = false
         }.recycle()
 
         initDefaultAdapter()
     }
 
+    /**
+     * 默认的适配器
+     */
     private fun initDefaultAdapter() {
         (navigator as? CommonNavigator)?.let {
             it.mode = tabMode
@@ -212,13 +221,16 @@ class MagicTabLayout @JvmOverloads constructor(
 
     /**
      * 类似官方TabLayout的使用方式，直接与[ViewPager]绑定
+     * 这种情况下将会使用默认参数构造默认的适配器
      */
     fun setupWithViewPager(viewPager: ViewPager, titles: List<String>) {
         if (this.viewPager == viewPager) return
         this.viewPager?.removeOnPageChangeListener(onPageChangeListener)
         this.viewPager?.removeOnAdapterChangeListener(onAdapterChangeListener)
 
-        setDefaultAdapter(titles)
+        setDefaultAdapter(titles) { pos, _ ->
+            viewPager.currentItem = pos
+        }
 
         viewPager.addOnPageChangeListener(onPageChangeListener)
         viewPager.addOnAdapterChangeListener(onAdapterChangeListener)
@@ -227,20 +239,26 @@ class MagicTabLayout @JvmOverloads constructor(
 
     /**
      * 类似官方TabLayout的使用方式，直接与[ViewPager2]绑定
+     * 这种情况下将会使用默认参数构造默认的适配器
      */
     fun setupWithViewPager2(viewPager2: ViewPager2, titles: List<String>) {
         if (this.viewPager2 == viewPager2) return
         this.viewPager2?.unregisterOnPageChangeCallback(onPageChangeCallback)
         this.viewPager2?.adapter?.unregisterAdapterDataObserver(onAdapterDataSetObserver)
 
-        setDefaultAdapter(titles)
+        setDefaultAdapter(titles) { pos, _ ->
+            viewPager2.currentItem = pos
+        }
 
         viewPager2.registerOnPageChangeCallback(onPageChangeCallback)
         viewPager2.adapter?.registerAdapterDataObserver(onAdapterDataSetObserver)
         this.viewPager2 = viewPager2
     }
 
-    private fun setDefaultAdapter(titles: List<String>) {
+    /**
+     * 使用默认参数构造默认适配器
+     */
+    private fun setDefaultAdapter(titles: List<String>, block: (pos: Int, tab: IMagicTab) -> Unit) {
         val indicator = CommonIndicator(context)
         indicator.mode = MODE_WRAP_CONTENT
         indicator.setColors(indicatorColor)
@@ -264,6 +282,11 @@ class MagicTabLayout @JvmOverloads constructor(
                 return indicator
             }
         }
+        adapter.addOnTabClickListener(object : BaseNavigatorAdapter.OnTabClickListener {
+            override fun onTabClick(position: Int, tab: IMagicTab) {
+                block.invoke(position, tab)
+            }
+        })
         setAdapter(adapter)
     }
 

@@ -132,6 +132,9 @@ class CommonNavigator @JvmOverloads constructor(
                     }
                     else -> LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT)
                 }
+                tab.setOnClickListener {
+                    adapter?.onTabClicked(i, tab)
+                }
                 tabContainer?.addView(tab, lp)
             }
         }

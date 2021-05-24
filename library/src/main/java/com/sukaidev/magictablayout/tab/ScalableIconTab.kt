@@ -12,7 +12,7 @@ import com.sukaidev.magictablayout.ext.dp
 
 /**
  * Create by sukaidev at 22/05/2021.
- *
+ * 可缩放、带Icon的Tab
  * @author sukaidev
  */
 class ScalableIconTab @JvmOverloads constructor(

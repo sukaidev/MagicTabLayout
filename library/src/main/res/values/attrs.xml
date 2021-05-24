@@ -4,6 +4,7 @@
         <attr name="enablePivotScroll" format="boolean" />
         <attr name="isFollowTouch" format="boolean" />
         <attr name="isIndicatorOnTop" format="boolean" />
+        <attr name="isAlignBaseLine" format="boolean" />
         <attr name="isSkimOverEnable" format="boolean" />
         <attr name="isSmoothScrollEnable" format="boolean" />
         <attr name="scrollPivotX" format="float" />
@@ -14,6 +15,11 @@
         <attr name="indicatorColor" format="color" />
         <attr name="indicatorWidth" format="dimension" />
         <attr name="showIndicator" format="boolean" />
+        <attr name="tabBoldMode" format="enum">
+            <enum name="select" value="0" />
+            <enum name="unselect" value="1" />
+            <enum name="both" value="2" />
+        </attr>
         <attr name="tabNavigateMode" format="enum">
             <enum name="scrollable" value="0" />
             <enum name="fixed" value="1" />

@@ -3,6 +3,7 @@ package com.sukaidev.magictablayout.navigator
 import android.content.Context
 import android.database.DataSetObservable
 import android.database.DataSetObserver
+import android.view.View
 import com.sukaidev.magictablayout.indicator.IMagicIndicator
 import com.sukaidev.magictablayout.indicator.NonIndicator
 import com.sukaidev.magictablayout.tab.IMagicTab
@@ -12,13 +13,15 @@ import com.sukaidev.magictablayout.tab.IMagicTab
  * 导航适配器
  * @author sukaidev
  */
-abstract class BaseNavigatorAdapter(private val context: Context) {
+abstract class BaseNavigatorAdapter(context: Context) {
 
     var tabCount = 0
         get() = tabs.size
         private set
 
     private var tabs = mutableListOf<IMagicTab>()
+
+    private var listeners = mutableListOf<OnTabClickListener>()
 
     var indicator: IMagicIndicator = NonIndicator(context)
 
@@ -51,6 +54,22 @@ abstract class BaseNavigatorAdapter(private val context: Context) {
         notifyDataSetChanged()
     }
 
+    fun onTabClicked(position: Int, tab: IMagicTab) {
+        listeners.forEach { it.onTabClick(position, tab) }
+    }
+
+    fun addOnTabClickListener(listener: OnTabClickListener) {
+        listeners.add(listener)
+    }
+
+    fun removeOnTabClickListener(listener: OnTabClickListener) {
+        listeners.remove(listener)
+    }
+
+    fun removeAllListeners() {
+        listeners.clear()
+    }
+
     fun getTab(index: Int) = tabs[index]
 
     open fun setTabWeight(index: Int) = 1f
@@ -66,4 +85,9 @@ abstract class BaseNavigatorAdapter(private val context: Context) {
     fun notifyDataSetChanged() = dataSetObservable.notifyChanged()
 
     fun notifyDataSetInvalidated() = dataSetObservable.notifyInvalidated()
+
+    @FunctionalInterface
+    interface OnTabClickListener {
+        fun onTabClick(position: Int, tab: IMagicTab)
+    }
 }

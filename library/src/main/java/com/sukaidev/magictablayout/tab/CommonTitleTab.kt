@@ -1,7 +1,5 @@
 package com.sukaidev.magictablayout.tab
 
-import android.annotation.ColorInt
-import android.annotation.ColorRes
 import android.content.Context
 import android.graphics.Color
 import android.graphics.Rect
@@ -9,6 +7,8 @@ import android.text.TextUtils
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.Gravity
+import androidx.annotation.ColorInt
+import androidx.annotation.ColorRes
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.content.ContextCompat
 import com.sukaidev.magictablayout.ext.dp
@@ -34,6 +34,8 @@ class CommonTitleTab @JvmOverloads constructor(
     private var selectTextColor = 0
     private var unSelectTextColor = 0
 
+    private var textBoldMode = SELECT
+
     init {
         gravity = Gravity.CENTER
         setPadding(padding, 0, padding, 0)
@@ -56,7 +58,6 @@ class CommonTitleTab @JvmOverloads constructor(
         setPadding(padding, 0, padding, 0)
     }
 
-
     override fun getContentLeft(): Int {
         val bound = Rect()
         var longestString = ""
@@ -75,10 +76,12 @@ class CommonTitleTab @JvmOverloads constructor(
 
     override fun onTabSelected(index: Int, totalCount: Int) {
         setTextColor(selectTextColor)
+        paint.isFakeBoldText = textBoldMode == SELECT || textBoldMode == BOTH
     }
 
     override fun onTabUnselected(index: Int, totalCount: Int) {
         setTextColor(unSelectTextColor)
+        paint.isFakeBoldText = textBoldMode == UNSELECT
     }
 
     override fun onEnter(index: Int, totalCount: Int, enterPercent: Float, leftToRight: Boolean) {
@@ -121,6 +124,12 @@ class CommonTitleTab @JvmOverloads constructor(
         return (height / 2 + contentHeight / 2).toInt()
     }
 
+    companion object {
+        const val SELECT = 0
+        const val UNSELECT = 1
+        const val BOTH = 2
+    }
+
     class Builder(private val context: Context) {
         private var title = ""
         private var selectedTextSize = 18f.dp
@@ -129,6 +138,8 @@ class CommonTitleTab @JvmOverloads constructor(
 
         private var selectTextColor = Color.BLACK
         private var unSelectTextColor = Color.BLACK
+
+        private var textBoldMode = SELECT
 
         private var isAlignBaseLine = false
 
@@ -166,9 +177,14 @@ class CommonTitleTab @JvmOverloads constructor(
             isAlignBaseLine = alignBaseLine
         }
 
+        fun setTextBoldMode(mode: Int) = apply {
+            textBoldMode = mode
+        }
+
         fun build(): CommonTitleTab {
             val tab = CommonTitleTab(context)
             tab.text = title
+            tab.textBoldMode = textBoldMode
             tab.selectedTextSize = selectedTextSize
             tab.selectTextColor = selectTextColor
             tab.unselectedTextSize = unselectedTextSize
