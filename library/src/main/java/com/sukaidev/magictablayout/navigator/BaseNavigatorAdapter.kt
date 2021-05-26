@@ -3,7 +3,6 @@ package com.sukaidev.magictablayout.navigator
 import android.content.Context
 import android.database.DataSetObservable
 import android.database.DataSetObserver
-import android.view.View
 import com.sukaidev.magictablayout.indicator.IMagicIndicator
 import com.sukaidev.magictablayout.indicator.NonIndicator
 import com.sukaidev.magictablayout.tab.IMagicTab

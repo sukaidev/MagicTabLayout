@@ -33,7 +33,7 @@ class MainActivity : AppCompatActivity() {
         tabLayout.setupWithViewPager(viewPager, titles)
 
         button.setOnClickListener {
-            val adapter = tabLayout.getAdapter()
+            val adapter = tabLayout.adapter
             adapter?.addTab(ScalableIconTab(this).apply {
                 setIcon(R.drawable.ic_launcher_background)
                 setAlignBaseLineMode(true)

@@ -11,6 +11,8 @@
         android:layout_width="match_parent"
         android:layout_height="50dp"
         app:layout_constraintTop_toTopOf="parent"
+        app:tabBoldMode="select"
+        app:tabNavigateMode="scrollable"
         app:tabSelectedTextColor="@color/black"
         app:tabSelectedTextSize="20dp"
         app:tabUnSelectedTextSize="16dp"

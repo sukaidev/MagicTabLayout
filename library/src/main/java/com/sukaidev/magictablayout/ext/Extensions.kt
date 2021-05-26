@@ -38,33 +38,3 @@ fun argbEvaluate(fraction: Float, startValue: Int, endValue: Int): Int {
     val currentB = startB + (fraction * (endB - startB)).toInt()
     return currentA or currentR or currentG or currentB
 }
-
-/**
- * 计算锚点位置
- */
-fun List<IndicatorPosition>.getImitativeIndicatorInfo(index: Int): IndicatorPosition {
-    // 越界后，返回假的IndicatorPosition
-    return if (index >= 0 && index <= size - 1) {
-        this[index]
-    } else {
-        val result = IndicatorPosition()
-        val referenceData: IndicatorPosition
-        val offset: Int
-        if (index < 0) {
-            offset = index
-            referenceData = this[0]
-        } else {
-            offset = index - size + 1
-            referenceData = this[size - 1]
-        }
-        result.left = referenceData.left + offset * referenceData.width()
-        result.top = referenceData.top
-        result.right = referenceData.right + offset * referenceData.width()
-        result.bottom = referenceData.bottom
-        result.contentLeft = referenceData.contentLeft + offset * referenceData.width()
-        result.contentTop = referenceData.contentTop
-        result.contentRight = referenceData.contentRight + offset * referenceData.width()
-        result.contentBottom = referenceData.contentBottom
-        result
-    }
-}

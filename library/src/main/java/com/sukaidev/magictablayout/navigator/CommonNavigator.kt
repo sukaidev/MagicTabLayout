@@ -22,7 +22,10 @@ class CommonNavigator @JvmOverloads constructor(
         context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : BaseNavigator(context, attrs, defStyleAttr), OnNavigatorScrollListener {
 
-    /** 是否启动中心点滚动 */
+    /**
+     * 是否启动中心点滚动
+     * 开启后TabLayout会尽量保证当前选中Tab位于视图中心
+     */
     var enablePivotScroll = false
 
     /** 滚动中心点 0.0f - 1.0f */
@@ -50,7 +53,7 @@ class CommonNavigator @JvmOverloads constructor(
     /** IndicatorPosition准备好时，是否重新选中当前页 */
     var reselectWhenLayout = true
 
-    override var mode: Int = MODE_SCROLLABLE
+    override var mode = MODE_SCROLLABLE
         set(value) {
             field = value
             if (tabContainer?.childCount ?: 0 > 0) initTabsAndIndicators()
@@ -196,8 +199,8 @@ class CommonNavigator @JvmOverloads constructor(
         navigatorHelper.onPageScrolled(position, positionOffset, positionOffsetPixels)
         indicator?.onPageScrolled(position, positionOffset, positionOffsetPixels)
 
-        // 手指跟随滚动
         if (indicatorPositions.size > 0 && position >= 0 && position < indicatorPositions.size) {
+            // 手指跟随滚动
             if (isFollowTouch) {
                 val currentPosition = (indicatorPositions.size - 1).coerceAtMost(position)
                 val nextPosition = (indicatorPositions.size - 1).coerceAtMost(position + 1)
@@ -244,9 +247,9 @@ class CommonNavigator @JvmOverloads constructor(
 
         if (mode != MODE_FIXED && !isFollowTouch && indicatorPositions.isNotEmpty()) {
             val currentIndex = (indicatorPositions.size - 1).coerceAtMost(index)
-            val current: IndicatorPosition = indicatorPositions[currentIndex]
+            val current = indicatorPositions[currentIndex]
             if (enablePivotScroll) {
-                val scrollTo: Float = current.horizontalCenter() - width * scrollPivotX
+                val scrollTo = current.horizontalCenter() - width * scrollPivotX
                 if (isSmoothScrollEnable) {
                     smoothScrollTo(scrollTo.toInt(), 0)
                 } else {

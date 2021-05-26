@@ -10,8 +10,6 @@ import androidx.viewpager.widget.ViewPager
 import androidx.viewpager2.widget.ViewPager2
 import com.sukaidev.magictablayout.ext.dp
 import com.sukaidev.magictablayout.indicator.CommonIndicator
-import com.sukaidev.magictablayout.indicator.CommonIndicator.Companion.MODE_EXACTLY
-import com.sukaidev.magictablayout.indicator.CommonIndicator.Companion.MODE_MATCH_EDGE
 import com.sukaidev.magictablayout.indicator.CommonIndicator.Companion.MODE_WRAP_CONTENT
 import com.sukaidev.magictablayout.indicator.IMagicIndicator
 import com.sukaidev.magictablayout.indicator.NonIndicator
@@ -31,6 +29,12 @@ import com.sukaidev.magictablayout.tab.IMagicTab
 class MagicTabLayout @JvmOverloads constructor(
         context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : FrameLayout(context, attrs, defStyleAttr) {
+
+    var adapter: BaseNavigatorAdapter?
+        get() = navigator.adapter
+        set(value) {
+            navigator.adapter = value
+        }
 
     private var viewPager: ViewPager? = null
     private var viewPager2: ViewPager2? = null
@@ -69,7 +73,7 @@ class MagicTabLayout @JvmOverloads constructor(
     }
 
     private val onAdapterChangeListener by lazy(LazyThreadSafetyMode.NONE) {
-        ViewPager.OnAdapterChangeListener { _, _, _ -> navigator?.notifyDataSetChanged() }
+        ViewPager.OnAdapterChangeListener { _, _, _ -> navigator.notifyDataSetChanged() }
     }
 
     private val onAdapterDataSetObserver by lazy(LazyThreadSafetyMode.NONE) {
@@ -146,12 +150,6 @@ class MagicTabLayout @JvmOverloads constructor(
         addView(navigator, lp)
         navigator.onAttachToTabLayout()
     }
-
-    fun setAdapter(adapter: BaseNavigatorAdapter) {
-        navigator.adapter = adapter
-    }
-
-    fun getAdapter() = navigator.adapter
 
     fun setNavigator(navigator: BaseNavigator) {
         if (navigator == this.navigator) return
@@ -287,7 +285,7 @@ class MagicTabLayout @JvmOverloads constructor(
                 block.invoke(position, tab)
             }
         })
-        setAdapter(adapter)
+        this.adapter = adapter
     }
 
     /**

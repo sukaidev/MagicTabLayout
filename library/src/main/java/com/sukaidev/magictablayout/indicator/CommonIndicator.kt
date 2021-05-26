@@ -11,7 +11,6 @@ import androidx.annotation.ColorInt
 import androidx.annotation.IntDef
 import com.sukaidev.magictablayout.ext.argbEvaluate
 import com.sukaidev.magictablayout.ext.dp
-import com.sukaidev.magictablayout.ext.getImitativeIndicatorInfo
 import kotlin.math.abs
 
 /**
@@ -61,9 +60,9 @@ class CommonIndicator @JvmOverloads constructor(
         }
 
         // 计算锚点位置
-        val current: IndicatorPosition = indicatorPosition?.getImitativeIndicatorInfo(position)
+        val current: IndicatorPosition = getImitativeIndicatorInfo(position, indicatorPosition)
                 ?: return
-        val next: IndicatorPosition = indicatorPosition?.getImitativeIndicatorInfo(position + 1)
+        val next: IndicatorPosition = getImitativeIndicatorInfo(position + 1, indicatorPosition)
                 ?: return
 
         val leftX: Float
@@ -111,6 +110,36 @@ class CommonIndicator @JvmOverloads constructor(
         indicatorPosition = dataList
     }
 
+    /**
+     * 计算锚点位置
+     */
+    private fun getImitativeIndicatorInfo(index: Int, data: List<IndicatorPosition>?): IndicatorPosition? {
+        val size = data?.size ?: return null
+        return if (index >= 0 && index <= size - 1) {
+            data[index]
+        } else {
+            val result = IndicatorPosition()
+            val referenceData: IndicatorPosition
+            val offset: Int
+            if (index < 0) {
+                offset = index
+                referenceData = data[0]
+            } else {
+                offset = index - size + 1
+                referenceData = data[size - 1]
+            }
+            result.left = referenceData.left + offset * referenceData.width()
+            result.top = referenceData.top
+            result.right = referenceData.right + offset * referenceData.width()
+            result.bottom = referenceData.bottom
+            result.contentLeft = referenceData.contentLeft + offset * referenceData.width()
+            result.contentTop = referenceData.contentTop
+            result.contentRight = referenceData.contentRight + offset * referenceData.width()
+            result.contentBottom = referenceData.contentBottom
+            result
+        }
+    }
+
     fun getColors(): List<Int> = colors
 
     fun setColors(@ColorInt vararg colors: Int) {
@@ -127,13 +156,13 @@ class CommonIndicator @JvmOverloads constructor(
     annotation class Mode
 
     companion object {
-        /** 指示器宽度 == title宽度 - 2 * xOffset */
+        /** 指示器宽度 == Tab宽度 - 2 * xOffset */
         const val MODE_MATCH_EDGE = 0
 
-        /** 直线宽度 == title内容宽度 - 2 * xOffset */
+        /** 指示器宽度 == Tab内容宽度 - 2 * xOffset */
         const val MODE_WRAP_CONTENT = 1
 
-        /** 直线宽度 == lineWidth */
+        /** 指示器宽度 == lineWidth */
         const val MODE_EXACTLY = 2
     }
 }
