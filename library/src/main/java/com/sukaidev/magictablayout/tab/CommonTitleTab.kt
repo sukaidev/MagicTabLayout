@@ -7,20 +7,24 @@ import android.text.TextUtils
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.Gravity
+import android.widget.FrameLayout
 import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.content.ContextCompat
 import com.sukaidev.magictablayout.ext.dp
+import com.sukaidev.magictablayout.pluggable.PluggableView
 
 /**
- * Create by sukaidev at 20/05/2021.
+ * Created by sukaidev at 20/05/2021.
+ *
  * 默认TabView
+ *
  * @author sukaidev
  */
 class CommonTitleTab @JvmOverloads constructor(
-        context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
-) : AppCompatTextView(context, attrs, defStyleAttr), IMeasurableTab {
+    context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
+) : FrameLayout(context, attrs, defStyleAttr), IMeasurableTab {
 
     private var padding = 10.dp
 
@@ -31,73 +35,102 @@ class CommonTitleTab @JvmOverloads constructor(
     private var unselectedTextSize = 0f
     private var sizeUnit = 0
 
-    private var selectTextColor = 0
-    private var unSelectTextColor = 0
+    var selectTextColor = 0
+    var unSelectTextColor = 0
 
     private var textBoldMode = SELECT
 
+    var pluggableView: PluggableView? = null
+        private set
+
+    private val titleView by lazy(LazyThreadSafetyMode.NONE) { AppCompatTextView(context) }
+
     init {
-        gravity = Gravity.CENTER
-        setPadding(padding, 0, padding, 0)
-        setSingleLine()
-        ellipsize = TextUtils.TruncateAt.END
-        setTextSize(sizeUnit, unselectedTextSize)
+        titleView.apply {
+            gravity = Gravity.CENTER
+            setPadding(padding, 0, padding, 0)
+            setSingleLine()
+            ellipsize = TextUtils.TruncateAt.END
+            setTextSize(sizeUnit, unselectedTextSize)
+            val lp = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
+            lp.gravity = Gravity.CENTER
+            addView(titleView, lp)
+        }
+    }
+
+    fun setPluggableView(view: PluggableView, gravity: Int = Gravity.TOP or Gravity.END) {
+        pluggableView = view
+        val lp = if (view.layoutParams == null) {
+            LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
+        } else {
+            LayoutParams(view.layoutParams)
+        }
+        lp.gravity = gravity
+        addView(pluggableView, lp)
     }
 
     fun setAlignBaseLineMode(isAlignBaseLine: Boolean) {
         this.isAlignBaseLine = isAlignBaseLine
         if (isAlignBaseLine) {
             post {
-                gravity = Gravity.BOTTOM
+                titleView.gravity = Gravity.BOTTOM
                 val paddingBottom = (height - unselectedTextSize - 10) / 2
-                setPadding(padding, 0, padding, paddingBottom.toInt())
+                titleView.setPadding(padding, 0, padding, paddingBottom.toInt())
             }
             return
         }
-        gravity = Gravity.CENTER
-        setPadding(padding, 0, padding, 0)
+        titleView.gravity = Gravity.CENTER
+        titleView.setPadding(padding, 0, padding, 0)
     }
 
     override fun getContentLeft(): Int {
         val bound = Rect()
         var longestString = ""
-        if (text.toString().contains("\n")) {
-            val brokenStrings = text.toString().split("\\n".toRegex()).toTypedArray()
+        if (titleView.text.toString().contains("\n")) {
+            val brokenStrings = titleView.text.toString().split("\\n".toRegex()).toTypedArray()
             for (each in brokenStrings) {
                 if (each.length > longestString.length) longestString = each
             }
         } else {
-            longestString = text.toString()
+            longestString = titleView.text.toString()
         }
-        paint.getTextBounds(longestString, 0, longestString.length, bound)
+        titleView.paint.getTextBounds(longestString, 0, longestString.length, bound)
         val contentWidth = bound.width()
         return left + width / 2 - contentWidth / 2
     }
 
     override fun onTabSelected(index: Int, totalCount: Int) {
-        setTextColor(selectTextColor)
-        paint.isFakeBoldText = textBoldMode == SELECT || textBoldMode == BOTH
+        titleView.setTextColor(selectTextColor)
+        titleView.paint.isFakeBoldText = textBoldMode == SELECT || textBoldMode == BOTH
+
+        pluggableView?.onTabSelected(index, totalCount)
     }
 
     override fun onTabUnselected(index: Int, totalCount: Int) {
-        setTextColor(unSelectTextColor)
-        paint.isFakeBoldText = textBoldMode == UNSELECT
+        titleView.setTextColor(unSelectTextColor)
+        titleView.paint.isFakeBoldText = textBoldMode == UNSELECT
+
+        pluggableView?.onTabUnselected(index, totalCount)
     }
 
     override fun onEnter(index: Int, totalCount: Int, enterPercent: Float, leftToRight: Boolean) {
+        pluggableView?.onEnter(index, totalCount, enterPercent, leftToRight)
         if (selectedTextSize == unselectedTextSize) return
-        val currentSize = (selectedTextSize - unselectedTextSize) * enterPercent + unselectedTextSize
-        setTextSize(sizeUnit, currentSize)
+        val currentSize =
+            (selectedTextSize - unselectedTextSize) * enterPercent + unselectedTextSize
+        titleView.setTextSize(sizeUnit, currentSize)
     }
 
     override fun onLeave(index: Int, totalCount: Int, leavePercent: Float, leftToRight: Boolean) {
+        pluggableView?.onLeave(index, totalCount, leavePercent, leftToRight)
         if (selectedTextSize == unselectedTextSize) return
-        val currentSize = (selectedTextSize - unselectedTextSize) * (1 - leavePercent) + unselectedTextSize
-        setTextSize(sizeUnit, currentSize)
+        val currentSize =
+            (selectedTextSize - unselectedTextSize) * (1 - leavePercent) + unselectedTextSize
+        titleView.setTextSize(sizeUnit, currentSize)
     }
 
     override fun getContentTop(): Int {
-        val metrics = paint.fontMetrics
+        val metrics = titleView.paint.fontMetrics
         val contentHeight = metrics.bottom - metrics.top
         return ((height - contentHeight) / 2).toInt()
     }
@@ -105,24 +138,25 @@ class CommonTitleTab @JvmOverloads constructor(
     override fun getContentRight(): Int {
         val bound = Rect()
         var longestString = ""
-        if (text.toString().contains("\n")) {
-            val brokenStrings = text.toString().split("\\n".toRegex()).toTypedArray()
+        if (titleView.text.toString().contains("\n")) {
+            val brokenStrings = titleView.text.toString().split("\\n".toRegex()).toTypedArray()
             for (each in brokenStrings) {
                 if (each.length > longestString.length) longestString = each
             }
         } else {
-            longestString = text.toString()
+            longestString = titleView.text.toString()
         }
-        paint.getTextBounds(longestString, 0, longestString.length, bound)
+        titleView.paint.getTextBounds(longestString, 0, longestString.length, bound)
         val contentWidth = bound.width()
         return left + width / 2 + contentWidth / 2
     }
 
     override fun getContentBottom(): Int {
-        val metrics = paint.fontMetrics
+        val metrics = titleView.paint.fontMetrics
         val contentHeight = metrics.bottom - metrics.top
         return (height / 2 + contentHeight / 2).toInt()
     }
+
 
     companion object {
         const val SELECT = 0
@@ -183,7 +217,7 @@ class CommonTitleTab @JvmOverloads constructor(
 
         fun build(): CommonTitleTab {
             val tab = CommonTitleTab(context)
-            tab.text = title
+            tab.titleView.text = title
             tab.textBoldMode = textBoldMode
             tab.selectedTextSize = selectedTextSize
             tab.selectTextColor = selectTextColor

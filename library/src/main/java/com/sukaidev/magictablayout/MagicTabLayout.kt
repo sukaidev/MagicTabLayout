@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.widget.FrameLayout
+import androidx.annotation.ColorInt
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager.widget.ViewPager
 import androidx.viewpager2.widget.ViewPager2
@@ -163,12 +164,13 @@ class MagicTabLayout @JvmOverloads constructor(
 
     /**
      * 当前页面滚动时，这个方法应该被调用
-     * @see [ViewPager.OnPageChangeListener.onPageScrolled]
-     * @see [ViewPager2.OnPageChangeCallback.onPageScrolled]
      *
      * @param position 当前显示的第一个页面的index 如果positionOffset不为0，则position+1将会显示
      * @param positionOffset 当前页面的偏移指数，取值范围[0,1)
      * @param positionOffsetPixels 当前页面的偏移量
+     *
+     * @see [ViewPager.OnPageChangeListener.onPageScrolled]
+     * @see [ViewPager2.OnPageChangeCallback.onPageScrolled]
      */
     fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
         onPageScrolled(position, positionOffset, positionOffsetPixels, false)
@@ -316,5 +318,40 @@ class MagicTabLayout @JvmOverloads constructor(
         viewPager2.registerOnPageChangeCallback(onPageChangeCallback)
         viewPager2.adapter?.registerAdapterDataObserver(onAdapterDataSetObserver)
         this.viewPager2 = viewPager2
+    }
+
+    fun setTextColor(@ColorInt color: Int, @ColorInt selectedColor: Int) {
+        tabSelectedTextColor = selectedColor
+        tabUnselectedTextColor = color
+        val tabCount = navigator.adapter?.tabCount ?: 0
+        val current = when {
+            null != viewPager -> viewPager!!.currentItem
+            null != viewPager2 -> viewPager2!!.currentItem
+            else -> return
+        }
+        for (i in 0 until tabCount) {
+            val tab = navigator.adapter?.getTab(i) as? CommonTitleTab ?: continue
+            tab.selectTextColor = selectedColor
+            tab.unSelectTextColor = color
+            if (i == current) {
+                tab.onTabSelected(i, tabCount)
+            } else {
+                tab.onTabUnselected(i, tabCount)
+            }
+        }
+    }
+
+    /**
+     * 获取[index]对应tab
+     */
+    fun getTabAt(index: Int) = navigator.adapter?.getTab(index)
+
+    /**
+     * 设置指示器颜色
+     */
+    fun setIndicatorColor(@ColorInt color: Int) {
+        indicatorColor = color
+        val indicator = navigator.adapter?.indicator as? CommonIndicator ?: return
+        indicator.setColors(color)
     }
 }

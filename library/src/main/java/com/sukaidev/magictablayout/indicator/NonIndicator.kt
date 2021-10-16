@@ -5,10 +5,11 @@ import android.util.AttributeSet
 import android.view.View
 
 /**
- * Create by sukaidev at 22/05/2021.
+ * Created by sukaidev at 22/05/2021.
+ *
  * 空指示器.
- * 当tabLayout的showIndicator为false
- * 或者 indicatorWidht 为0时，默认使用此指示器
+ *
+ * 当TabLayout设置showIndicator为false 或者 indicatorWidth 为0时，会使用此指示器
  * @author sukaidev
  */
 class NonIndicator @JvmOverloads constructor(
